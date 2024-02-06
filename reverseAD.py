@@ -106,6 +106,7 @@ import numpy as np
 from utils import topological_sort
 
 
+# TODO 解决与numpy运算符重载的冲突问题
 class Node:
     """
     计算图的节点
@@ -462,7 +463,6 @@ sumOp = Sum()
 
 class Executor:
     """给定节点及其实际值，计算指定节点的梯度值"""
-
     def __init__(self, to_grad: List[Node]):
         """
         :param to_grad 需要计算梯度的节点
@@ -525,5 +525,4 @@ def gradient(output: Node, to_grad: List[Node]):
                 node_grad_map[node.inputs[i]] = node_grad_map[node.inputs[i]] + grad
             else:
                 node_grad_map[node.inputs[i]] = grad
-
     return [node_grad_map[node] for node in to_grad]

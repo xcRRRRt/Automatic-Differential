@@ -3,3 +3,5 @@
 *.npy
 .idea
 __pycache__
+dataset
+test.ipynb
