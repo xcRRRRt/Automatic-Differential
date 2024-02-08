@@ -143,9 +143,11 @@ class Optimizer:
 
 criterion = CrossEntropyLoss()
 net = NeuralNetwork(
-    Linear(784, 25, name="w1"),
+    Linear(784, 100, name="w1"),
     Sigmoid(),
-    Linear(25, 10, name="w2"),
+    Linear(100, 25, name="w2"),
+    Sigmoid(),
+    Linear(25, 10, name="w3"),
     Sigmoid()
 )
 

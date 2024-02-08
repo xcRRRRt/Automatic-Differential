@@ -50,7 +50,7 @@ def read_file(filename, file_type):
 
 def pre_process(imgs: np.ndarray, label: np.ndarray):
     imgs = imgs.reshape(imgs.shape[0], -1) / 255
-    one_hot_label = np.eye(10)[label]   # TODO 不需要One-hot，直接用vector
+    one_hot_label = np.eye(10)[label]
     return imgs, one_hot_label
 
 
