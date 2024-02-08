@@ -1,7 +1,8 @@
-"""测试用例"""
+"""测试"""
 import numpy as np
 
 from reverseAD import *
+
 
 # x = var('x')
 # y = var('y')
@@ -64,38 +65,3 @@ from reverseAD import *
 #     print(f"grad_x: {res[1]}")
 #
 # test_softmax()
-
-
-class CrossEntropyLoss:
-    def __call__(self, y_pred: np.ndarray, y_real: np.ndarray):
-        pred_label = np.argmax(y_pred, axis=1)
-        equality_vector = (pred_label == np.argmax(y_real, axis=1)).astype(int)
-        # L = 0
-        # for i in range(np.max(y_real) + 1):
-        #     equality_class_vector = (equality_vector == i).astype(int)
-        #     prob_vector = y_pred[equality_class_vector]
-        #     Li = -sumOp(equality_class_vector * log(prob_vector))
-        #     L = L + Li
-        # L = L / len(y_real)
-        L = 0
-        inputs = {}
-        for i in range(len(y_real[0])):
-            equality_class_vector = (pred_label == i).astype(int)
-            x = var(f"pred{i}")
-            inputs[x] = y_pred * equality_class_vector[:, np.newaxis]
-            Li = -sumOp(log(x) * inputs[x])
-            L = L + Li
-        L = L / len(y_real)
-        print(L)
-        grads = gradient(L, list(inputs.keys()))
-
-        executor = Executor([L] + grads)
-        res = executor.run(inputs)
-        print(res[0])
-        print(res[1:])
-        pass
-
-
-criterion = CrossEntropyLoss()
-criterion(np.asarray([[0.3, 0.3, 0.4], [0.3, 0.4, 0.3], [0.1, 0.2, 0.7]]),
-          np.asarray([[0, 0, 1], [0, 1, 0], [1, 0, 0]]))

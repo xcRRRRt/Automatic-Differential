@@ -123,6 +123,7 @@ class Node:
         self.op = op
         self.name = name
         self.const_value = const_value
+        self.bias = False
 
     # 重载运算符
     def __add__(self, other: Union['Node', np.ndarray, float, int]):
@@ -219,7 +220,7 @@ class Placeholder(Operator):
         pass
 
 
-def var(name):
+def var(name, **kwargs):
     """构建输入节点，不需要输入实际的值"""
     input_node = placeholder()
     input_node.name = name
@@ -463,18 +464,18 @@ sumOp = Sum()
 
 class Executor:
     """给定节点及其实际值，计算指定节点的梯度值"""
-    def __init__(self, to_grad: List[Node]):
+    def __init__(self, to_compute: List[Node]):
         """
-        :param to_grad 需要计算梯度的节点
+        :param to_compute 需要计算的节点，可以是梯度节点、也可以是前馈计算的节点
         """
-        self.to_grad = to_grad
-        self.topological_graph_sorted = topological_sort(to_grad)  # 拓扑排序，从输入到输出，为了前向计算
+        self.to_compute = to_compute
+        self.topological_graph_sorted = topological_sort(to_compute)  # 拓扑排序，从输入到输出，为了前向计算
 
     def run(self, inputs_dict: dict[Node, np.ndarray]) -> List[np.ndarray]:
         """
-        计算指定节点的梯度值
+        计算指定节点的值
         :param inputs_dict 输入节点的值字典 dict[Node, np.ndarray]
-        :return to_grad节点的梯度值
+        :return to_compute节点的值
         """
         node_value_map: dict[Node, np.ndarray] = inputs_dict
         for node in self.topological_graph_sorted:
@@ -486,7 +487,7 @@ class Executor:
                 node,
                 [node_value_map[n] for n in node.inputs],  # [node_value_map[n] for n in node.inputs] 节点的输入值
             )
-        return [node_value_map[node] for node in self.to_grad]  # 返回要计算的梯度节点的梯度
+        return [node_value_map[node] for node in self.to_compute]  # 返回要计算的节点的值
 
 
 def gradient(output: Node, to_grad: List[Node]):
@@ -495,20 +496,6 @@ def gradient(output: Node, to_grad: List[Node]):
     :param output 输出节点
     :param to_grad 需要构建梯度的节点
     :return to_grad节点对应的梯度节点
-    """
-    """
-    例：y = ln(x1) + x1 * x2
-    1.  v-1 = x1    v0 = x2
-    2.  v1 = ln(v-1)
-    3.  v2 = v-1 * v0
-    4.  v3 = v1 + v2
-    5.  y = v3
-    
-    5.  ∂y/∂v3 = ∂y/∂y = 1
-    4.  ∂y/v1 = ∂y/∂v3 * ∂v3/∂v1 = 1 * 1 = 1                ∂y/∂v2 = ∂y/∂v3 * ∂v3/∂v2 = 1 * 1 = 1
-    3.  ∂y/∂v-1 = ∂y/∂v2 * ∂v2/∂v-1 = 1 * v0 = v0           ∂/v0 = ∂y/∂v2 * ∂y/∂v0 = 1 * v-1 = v-1
-    2.  ∂y/∂v-1 = ∂v-1 + ∂v1/v-1 = v0 + 1/v-1
-    1.  ∂y/∂x2 = ∂y/∂v-1 = v0 + 1/v-1 = x2 + 1/x1           ∂y/∂x1 = ∂y/∂v0 = v-1 = v0
     """
     # 节点和对应梯度节点的映射，如例中所示，∂y/∂v-1对应v-1，∂y/∂v0对应v0，∂y/∂v1对应v1，etc.
     node_grad_map: dict[Node, Node] = {output: oneslike(output)}

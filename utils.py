@@ -55,5 +55,6 @@ def pre_process(imgs: np.ndarray, label: np.ndarray):
 
 
 def init_weight(input_shape, output_shape):
-    w = np.random.rand(input_shape, output_shape) / np.sqrt(input_shape)
-    return w
+    # np.random.seed(0)
+    limit = np.sqrt(6.0 / (input_shape + output_shape))
+    return np.random.uniform(-limit, limit, size=(input_shape, output_shape))
